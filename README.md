@@ -32,8 +32,17 @@ sudo zfs create -o xattr=sa -o atime=off -o compression=lz4 -o recordsize=1M tan
 Edit the `/backups` volume path in `docker-compose.yml`, then:
 
 ```sh
-docker compose up -d --build
+docker compose up -d
 ```
+
+The image is built by GitHub Actions and published to
+`ghcr.io/samfaunt/timemachine-backup`:
+
+- every push to `main` updates `:latest`
+- `v*` tags also publish version tags (`:1.2.0`, `:1.2`)
+
+To update, run `docker compose pull && docker compose up -d`. To build locally
+instead, run `docker build -t ghcr.io/samfaunt/timemachine-backup:latest .`.
 
 Open `http://<host>:8080`. On first visit it asks you to create the admin
 account.

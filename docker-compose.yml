@@ -1,6 +1,6 @@
 services:
   timemachine:
-    build: .
+    image: ghcr.io/samfaunt/timemachine-backup:latest
     container_name: timemachine
     restart: unless-stopped
     # Host networking lets mDNS (Bonjour) reach the LAN so Macs discover the
