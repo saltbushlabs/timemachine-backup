@@ -1,0 +1,39 @@
+{{define "content"}}
+<h1>Repositories</h1>
+{{if .TotalBytes}}<p class="muted">Backup volume: {{bytes .FreeBytes}} free of {{bytes .TotalBytes}}</p>{{end}}
+
+<div class="card">
+  {{if .Repos}}
+  <div class="table-scroll"><table>
+    <tr><th>Name</th><th>Status</th><th>Used</th><th>Quota</th><th>Last backup</th><th>Logins</th></tr>
+    {{range .Repos}}
+    <tr>
+      <td><a href="/repos/{{.Name}}">{{.Name}}</a></td>
+      <td>
+        {{if not .Enabled}}<span class="badge off">disabled</span>
+        {{else if not .Available}}<span class="badge off">no logins</span>
+        {{else if .Stale}}<span class="badge warn">stale</span>
+        {{else}}<span class="badge ok">active</span>{{end}}
+      </td>
+      <td>{{bytes .Stats.UsedBytes}}</td>
+      <td>{{if .QuotaGB}}{{.QuotaGB}} GB{{else}}unlimited{{end}}</td>
+      <td>{{ago .Stats.LastBackup}}</td>
+      <td>{{len .Credentials}}</td>
+    </tr>
+    {{end}}
+  </table></div>
+  {{else}}
+  <p class="muted">No repositories yet. Create one per Mac you want to back up.</p>
+  {{end}}
+</div>
+
+<div class="card">
+  <h2>New repository</h2>
+  <form method="post" action="/repos" class="row">
+    <label>Name <input type="text" name="name" placeholder="sams-macbook" pattern="[a-z0-9][a-z0-9_\-]{0,31}" required></label>
+    <label>Quota GB (0 = unlimited) <input type="number" name="quota_gb" min="0" value="0"></label>
+    <button>Create</button>
+  </form>
+  <p class="muted">Lowercase letters, digits, '-' and '_'. The name becomes the SMB share and folder name.</p>
+</div>
+{{end}}

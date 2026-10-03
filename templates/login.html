@@ -1,0 +1,10 @@
+{{define "content"}}
+<div class="card" style="max-width:380px;margin:40px auto">
+  <h2>Log in</h2>
+  <form method="post" action="/login">
+    <label>Username <input type="text" name="username" autocomplete="username" required autofocus></label><br>
+    <label>Password <input type="password" name="password" autocomplete="current-password" required></label><br>
+    <button>Log in</button>
+  </form>
+</div>
+{{end}}

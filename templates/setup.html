@@ -1,0 +1,12 @@
+{{define "content"}}
+<div class="card" style="max-width:380px;margin:40px auto">
+  <h2>Create admin account</h2>
+  <p class="muted">First run. This account manages repositories and backup credentials.</p>
+  <form method="post" action="/setup">
+    <label>Username <input type="text" name="username" autocomplete="username" required autofocus></label><br>
+    <label>Password (min 8 chars) <input type="password" name="password" autocomplete="new-password" minlength="8" required></label><br>
+    <label>Confirm password <input type="password" name="confirm" autocomplete="new-password" minlength="8" required></label><br>
+    <button>Create</button>
+  </form>
+</div>
+{{end}}

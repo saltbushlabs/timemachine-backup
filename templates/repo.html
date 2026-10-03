@@ -1,0 +1,76 @@
+{{define "content"}}
+{{with .Repo}}
+<p class="muted"><a href="/">← Repositories</a></p>
+<h1>{{.Name}}
+  {{if not .Enabled}}<span class="badge off">disabled</span>
+  {{else if not .Available}}<span class="badge off">no logins</span>
+  {{else if .Stale}}<span class="badge warn">stale</span>
+  {{else}}<span class="badge ok">active</span>{{end}}
+</h1>
+
+<div class="card">
+  <h2>Status</h2>
+  <p>Used: <b>{{bytes .Stats.UsedBytes}}</b>{{if .QuotaGB}} of {{.QuotaGB}} GB{{end}}
+    · Last backup: <b>{{ago .Stats.LastBackup}}</b>
+    {{if .Stats.Bundles}}· Bundles: {{range $i, $b := .Stats.Bundles}}{{if $i}}, {{end}}<code>{{$b}}</code>{{end}}{{end}}</p>
+  <p class="muted">Stats refresh every 10 minutes{{if not .Stats.Scanned.IsZero}} (last {{ago .Stats.Scanned}}){{end}}.</p>
+</div>
+
+<div class="card">
+  <h2>Connect a Mac</h2>
+  <p>System Settings → General → Time Machine → Add Backup Disk, then pick <b>{{.Name}}</b> on <b>{{$.Hostname}}</b> and sign in with a login below.</p>
+  <p class="muted">If it isn't listed, in Finder press ⌘K and connect to the address below first, or use Terminal:</p>
+  <pre>smb://{{$.Hostname}}.local/{{.Name}}</pre>
+  <pre>sudo tmutil setdestination -a 'smb://USERNAME:PASSWORD@{{$.Hostname}}.local/{{.Name}}'</pre>
+</div>
+
+<div class="card">
+  <h2>Logins</h2>
+  {{if .Credentials}}
+  <div class="table-scroll"><table>
+    <tr><th>Username</th><th>Status</th><th>Created</th><th></th></tr>
+    {{range .Credentials}}
+    <tr>
+      <td><code>{{.Username}}</code></td>
+      <td>{{if .Enabled}}<span class="badge ok">enabled</span>{{else}}<span class="badge off">disabled</span>{{end}}</td>
+      <td class="muted">{{.Created.Format "2006-01-02"}}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <form class="inline" method="post" action="/repos/{{$.Repo.Name}}/credentials/{{.Username}}/reset"><button class="secondary small">New password</button></form>
+        <form class="inline" method="post" action="/repos/{{$.Repo.Name}}/credentials/{{.Username}}/toggle"><button class="secondary small">{{if .Enabled}}Disable{{else}}Enable{{end}}</button></form>
+        <form class="inline" method="post" action="/repos/{{$.Repo.Name}}/credentials/{{.Username}}/delete" onsubmit="return confirm('Delete login {{.Username}}?')"><button class="danger small">Delete</button></form>
+      </td>
+    </tr>
+    {{end}}
+  </table></div>
+  {{else}}
+  <p class="muted">No logins yet. The share is not served until it has at least one enabled login.</p>
+  {{end}}
+  <h2 style="margin-top:18px">New login</h2>
+  <form method="post" action="/repos/{{.Name}}/credentials" class="row">
+    <label>Username <input type="text" name="username" pattern="[a-z][a-z0-9_\-]{0,31}" required></label>
+    <label>Password (blank = generate) <input type="password" name="password" autocomplete="new-password" minlength="8"></label>
+    <button>Create login</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Settings</h2>
+  <form method="post" action="/repos/{{.Name}}/settings" class="row">
+    <label>Quota GB (0 = unlimited) <input type="number" name="quota_gb" min="0" value="{{.QuotaGB}}"></label>
+    <label class="check"><input type="checkbox" name="enabled" {{if .Enabled}}checked{{end}}> Enabled</label>
+    <button>Save</button>
+  </form>
+  <p class="muted">The quota is the size Time Machine sees; it prunes old backups to stay under it.</p>
+</div>
+
+<div class="card">
+  <h2>Delete repository</h2>
+  <form method="post" action="/repos/{{.Name}}/delete" class="row">
+    <label>Type <b>{{.Name}}</b> to confirm <input type="text" name="confirm" required></label>
+    <label class="check"><input type="checkbox" name="wipe"> Also delete backup data</label>
+    <button class="danger">Delete</button>
+  </form>
+  <p class="muted">Without "delete backup data" the folder is kept; creating a repository with the same name reattaches it.</p>
+</div>
+{{end}}
+{{end}}

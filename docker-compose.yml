@@ -1,0 +1,14 @@
+services:
+  timemachine:
+    build: .
+    container_name: timemachine
+    restart: unless-stopped
+    # Host networking lets mDNS (Bonjour) reach the LAN so Macs discover the
+    # backup destinations automatically. Uses host ports 445 (SMB), 5353/udp
+    # (mDNS) and 8080 (web UI).
+    network_mode: host
+    environment:
+      LISTEN_ADDR: ":8080"
+    volumes:
+      - /tank/timemachine:/backups   # your ZFS dataset
+      - ./config:/config

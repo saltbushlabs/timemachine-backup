@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · Time Machine</title>
+<style>
+:root { --bg:#f6f7f9; --card:#fff; --fg:#1d2330; --muted:#667085; --line:#e3e6eb; --accent:#2563eb; --danger:#c0362c; --warn:#b26a00; --ok:#18794e; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#14171c; --card:#1d2128; --fg:#e6e8eb; --muted:#9aa3b2; --line:#2e333c; --accent:#5b8def; --danger:#e5665b; --warn:#e0a03a; --ok:#3fb47c; }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, -apple-system, sans-serif; }
+header { background:var(--card); border-bottom:1px solid var(--line); }
+header .wrap { display:flex; align-items:center; justify-content:space-between; }
+header a { color:var(--fg); text-decoration:none; font-weight:600; }
+.wrap { max-width:900px; margin:0 auto; padding:14px 16px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px; margin:16px 0; }
+h1 { font-size:22px; margin:8px 0; } h2 { font-size:17px; margin:0 0 12px; }
+table { width:100%; border-collapse:collapse; } th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+th { color:var(--muted); font-weight:500; font-size:13px; }
+a { color:var(--accent); }
+.muted { color:var(--muted); font-size:13px; }
+.row { display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
+label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted); }
+label.check { flex-direction:row; align-items:center; gap:6px; color:var(--fg); font-size:15px; }
+input[type=text], input[type=password], input[type=number] { padding:8px 10px; border:1px solid var(--line); border-radius:7px; background:var(--bg); color:var(--fg); font:inherit; min-width:0; }
+button { padding:8px 14px; border:0; border-radius:7px; background:var(--accent); color:#fff; font:inherit; cursor:pointer; }
+button.secondary { background:transparent; color:var(--fg); border:1px solid var(--line); }
+button.danger { background:var(--danger); }
+button.small { padding:4px 10px; font-size:13px; }
+form.inline { display:inline; }
+.error { background:color-mix(in srgb, var(--danger) 12%, transparent); color:var(--danger); border-radius:7px; padding:10px 12px; margin:12px 0; }
+.badge { display:inline-block; padding:1px 8px; border-radius:99px; font-size:12px; border:1px solid currentColor; }
+.ok { color:var(--ok); } .warn { color:var(--warn); } .off { color:var(--muted); }
+code, pre { font-family: ui-monospace, Menlo, monospace; font-size:13px; }
+pre { background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:10px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; }
+.secret { font-size:18px; font-weight:600; letter-spacing:.5px; }
+.table-scroll { overflow-x:auto; }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a href="/">Time Machine Server</a>
+  {{if .Authed}}<form class="inline" method="post" action="/logout"><button class="secondary small">Log out</button></form>{{end}}
+</div></header>
+<main class="wrap">
+{{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+{{template "content" .}}
+</main>
+</body>
+</html>
