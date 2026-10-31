@@ -177,7 +177,7 @@ func (w *web) validSession(r *http.Request) bool {
 	return true
 }
 
-func (w *web) startSession(rw http.ResponseWriter) {
+func (w *web) startSession(rw http.ResponseWriter, r *http.Request) {
 	token := rand.Text()
 	w.mu.Lock()
 	now := time.Now()
@@ -188,11 +188,18 @@ func (w *web) startSession(rw http.ResponseWriter) {
 	}
 	w.sessions[token] = now.Add(sessionTTL)
 	w.mu.Unlock()
-	// SameSite=Strict keeps other sites from submitting our forms with this cookie.
-	// No Secure flag: the UI is served over plain HTTP on the LAN.
-	http.SetCookie(rw, &http.Cookie{ //nolint:gosec // see above
-		Name: sessionCookie, Value: token, Path: "/", MaxAge: int(sessionTTL.Seconds()),
+	setSessionCookie(rw, r, token, int(sessionTTL.Seconds()))
+}
+
+// setSessionCookie sets or (with maxAge < 0) clears the session cookie.
+// SameSite=Strict keeps other sites from submitting our forms with it. Secure
+// is set only when the request arrived over HTTPS, because the UI is usually
+// served over plain HTTP on the LAN and a Secure cookie would never be sent.
+func setSessionCookie(rw http.ResponseWriter, r *http.Request, value string, maxAge int) {
+	http.SetCookie(rw, &http.Cookie{ //nolint:gosec // Secure depends on the request scheme, see above
+		Name: sessionCookie, Value: value, Path: "/", MaxAge: maxAge,
 		HttpOnly: true, SameSite: http.SameSiteStrictMode,
+		Secure: r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
 	})
 }
 
@@ -233,7 +240,7 @@ func (w *web) setup(rw http.ResponseWriter, r *http.Request) {
 		w.render(rw, "setup", http.StatusBadRequest, pageData{Title: "Set up admin", Error: err.Error()})
 		return
 	}
-	w.startSession(rw)
+	w.startSession(rw, r)
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
@@ -258,7 +265,7 @@ func (w *web) login(rw http.ResponseWriter, r *http.Request) {
 		w.render(rw, "login", http.StatusUnauthorized, pageData{Title: "Log in", Error: "Invalid username or password"})
 		return
 	}
-	w.startSession(rw)
+	w.startSession(rw, r)
 	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
 
@@ -268,7 +275,7 @@ func (w *web) logout(rw http.ResponseWriter, r *http.Request) {
 		delete(w.sessions, c.Value)
 		w.mu.Unlock()
 	}
-	http.SetCookie(rw, &http.Cookie{Name: sessionCookie, Path: "/", MaxAge: -1}) //nolint:gosec // expires the cookie
+	setSessionCookie(rw, r, "", -1)
 	http.Redirect(rw, r, "/login", http.StatusSeeOther)
 }
 
