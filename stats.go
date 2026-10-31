@@ -73,7 +73,7 @@ func (c *statsCache) run(store *Store) {
 
 func scanRepo(dir string) RepoStats {
 	s := RepoStats{Scanned: time.Now()}
-	filepath.WalkDir(dir, func(_ string, d fs.DirEntry, err error) error {
+	_ = filepath.WalkDir(dir, func(_ string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}
@@ -87,7 +87,7 @@ func scanRepo(dir string) RepoStats {
 
 	entries, _ := os.ReadDir(dir)
 	for _, e := range entries {
-		if !e.IsDir() || !(strings.HasSuffix(e.Name(), ".sparsebundle") || strings.HasSuffix(e.Name(), ".backupbundle")) {
+		if !e.IsDir() || !strings.HasSuffix(e.Name(), ".sparsebundle") && !strings.HasSuffix(e.Name(), ".backupbundle") {
 			continue
 		}
 		s.Bundles = append(s.Bundles, e.Name())

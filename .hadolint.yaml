@@ -1,0 +1,4 @@
+ignored:
+  # Debian security updates replace exact versions; pinning breaks rebuilds.
+  # Trivy scans the resulting image instead.
+  - DL3008

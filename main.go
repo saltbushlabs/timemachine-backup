@@ -53,7 +53,7 @@ func listenAddr() string {
 }
 
 func serve() error {
-	if err := os.MkdirAll("/run/samba", 0o755); err != nil {
+	if err := os.MkdirAll("/run/samba", 0o755); err != nil { //nolint:gosec // samba runtime dir must be world-readable
 		return err
 	}
 	if err := os.MkdirAll(sambaPrivateDir, 0o700); err != nil {
@@ -98,7 +98,9 @@ func serve() error {
 		log.Print("shutting down")
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		srv.Shutdown(ctx)
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Printf("shutdown: %v", err)
+		}
 	}()
 
 	log.Printf("web UI listening on %s", srv.Addr)

@@ -189,7 +189,8 @@ func (w *web) startSession(rw http.ResponseWriter) {
 	w.sessions[token] = now.Add(sessionTTL)
 	w.mu.Unlock()
 	// SameSite=Strict keeps other sites from submitting our forms with this cookie.
-	http.SetCookie(rw, &http.Cookie{
+	// No Secure flag: the UI is served over plain HTTP on the LAN.
+	http.SetCookie(rw, &http.Cookie{ //nolint:gosec // see above
 		Name: sessionCookie, Value: token, Path: "/", MaxAge: int(sessionTTL.Seconds()),
 		HttpOnly: true, SameSite: http.SameSiteStrictMode,
 	})
@@ -224,7 +225,7 @@ func (w *web) setup(rw http.ResponseWriter, r *http.Request) {
 			return errors.New("passwords do not match")
 		}
 		salt := make([]byte, 16)
-		rand.Read(salt)
+		_, _ = rand.Read(salt) // crypto/rand.Read never fails
 		st.Admin = &Admin{Username: username, Salt: salt, Hash: hashPassword(pw, salt)}
 		return nil
 	})
@@ -267,7 +268,7 @@ func (w *web) logout(rw http.ResponseWriter, r *http.Request) {
 		delete(w.sessions, c.Value)
 		w.mu.Unlock()
 	}
-	http.SetCookie(rw, &http.Cookie{Name: sessionCookie, Path: "/", MaxAge: -1})
+	http.SetCookie(rw, &http.Cookie{Name: sessionCookie, Path: "/", MaxAge: -1}) //nolint:gosec // expires the cookie
 	http.Redirect(rw, r, "/login", http.StatusSeeOther)
 }
 
@@ -296,8 +297,8 @@ func (w *web) renderRepos(rw http.ResponseWriter, status int, errMsg string) {
 	}
 	var fs syscall.Statfs_t
 	if syscall.Statfs(backupsDir, &fs) == nil {
-		d.FreeBytes = int64(fs.Bavail) * fs.Bsize
-		d.TotalBytes = int64(fs.Blocks) * fs.Bsize
+		d.FreeBytes = int64(fs.Bavail) * fs.Bsize  //nolint:gosec // block counts fit in int64
+		d.TotalBytes = int64(fs.Blocks) * fs.Bsize //nolint:gosec // block counts fit in int64
 	}
 	w.render(rw, "repos", status, d)
 }
@@ -342,7 +343,7 @@ func (w *web) createRepo(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.stats.refresh()
-	http.Redirect(rw, r, "/repos/"+name, http.StatusSeeOther)
+	http.Redirect(rw, r, "/repos/"+name, http.StatusSeeOther) //nolint:gosec // same-origin path to an existing repo
 }
 
 func (w *web) repoPage(rw http.ResponseWriter, r *http.Request) {
@@ -415,7 +416,7 @@ func (w *web) updateRepo(rw http.ResponseWriter, r *http.Request) {
 	if disabled {
 		closeShare(name)
 	}
-	http.Redirect(rw, r, "/repos/"+name, http.StatusSeeOther)
+	http.Redirect(rw, r, "/repos/"+name, http.StatusSeeOther) //nolint:gosec // same-origin path to an existing repo
 }
 
 func (w *web) deleteRepo(rw http.ResponseWriter, r *http.Request) {
@@ -549,7 +550,7 @@ func (w *web) toggleCredential(rw http.ResponseWriter, r *http.Request) {
 	if disabled {
 		closeShare(name)
 	}
-	http.Redirect(rw, r, "/repos/"+name, http.StatusSeeOther)
+	http.Redirect(rw, r, "/repos/"+name, http.StatusSeeOther) //nolint:gosec // same-origin path to an existing repo
 }
 
 func (w *web) deleteCredential(rw http.ResponseWriter, r *http.Request) {
@@ -574,7 +575,7 @@ func (w *web) deleteCredential(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	closeShare(name)
-	http.Redirect(rw, r, "/repos/"+name, http.StatusSeeOther)
+	http.Redirect(rw, r, "/repos/"+name, http.StatusSeeOther) //nolint:gosec // same-origin path to an existing repo
 }
 
 // ---- formatting ----

@@ -34,7 +34,7 @@ func (s *supervisor) loop(name string, argv []string) {
 	defer s.wg.Done()
 	backoff := time.Second
 	for {
-		cmd := exec.Command(argv[0], argv[1:]...)
+		cmd := exec.Command(argv[0], argv[1:]...) //nolint:gosec // argv is fixed by the program, not user input
 		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 		started := time.Now()
 
@@ -78,7 +78,7 @@ func (s *supervisor) signal(sig os.Signal) {
 	defer s.mu.Unlock()
 	for _, cmd := range s.procs {
 		if cmd != nil {
-			cmd.Process.Signal(sig)
+			_ = cmd.Process.Signal(sig) // process may already have exited
 		}
 	}
 }
